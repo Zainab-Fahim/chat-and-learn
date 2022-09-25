@@ -1,0 +1,466 @@
+{
+  "description": "A New Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "greeting",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "greeting",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "if_enter_quiz",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -80,
+          "y": 150
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Hello, welcome to *chat-n-learn*.\n\nThis is an automated chatbot assignment portal.\n\nPlease enter \"start\" if you want to enter the portal.",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "if_enter_quiz",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "send_condionNotMatch",
+          "event": "noMatch"
+        },
+        {
+          "next": "get_name",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of y, yes, sure",
+              "arguments": [
+                "{{widgets.greeting.inbound.Body}}"
+              ],
+              "type": "matches_any_of",
+              "value": "start, s, y, yes"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.greeting.inbound.Body}}",
+        "offset": {
+          "x": -120,
+          "y": 380
+        }
+      }
+    },
+    {
+      "name": "set_variables_questionlist",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "send_questionlistVar",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{{widgets.func_getQuestionList.parsed.items[0].question}}",
+            "key": "questionlist"
+          },
+          {
+            "value": "5",
+            "key": "test"
+          }
+        ],
+        "offset": {
+          "x": -300,
+          "y": 1650
+        }
+      }
+    },
+    {
+      "name": "send_questionlistVar",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -450,
+          "y": 1480
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "LEngth is  {{flow.variables.questionlist}}{{flow.variables.test}}"
+      }
+    },
+    {
+      "name": "send_condionNotMatch",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -490,
+          "y": 600
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "sorry conditioned not match"
+      }
+    },
+    {
+      "name": "send_getRequestSuccess",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "iterate_count",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -30,
+          "y": 1170
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "get request is a success"
+      }
+    },
+    {
+      "name": "send_getRequestFail",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 290,
+          "y": 820
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "get request is a FAIL"
+      }
+    },
+    {
+      "name": "func_getQuestionList",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "send_getRequestSuccess",
+          "event": "success"
+        },
+        {
+          "next": "send_getRequestFail",
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS45cc13e0903c336c0a6a0b119b352714",
+        "environment_sid": "ZE61a9756c809d299bef7366698777dab7",
+        "offset": {
+          "x": -110,
+          "y": 840
+        },
+        "function_sid": "ZHa63b124caacb9cbd709957eb87cb962d",
+        "parameters": [
+          {
+            "value": "{{trigger.message.From}}",
+            "key": "receipent_contact"
+          }
+        ],
+        "url": "https://chat-and-learn-4984.twil.io/get_questionlist"
+      }
+    },
+    {
+      "name": "iterate_count",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "send_question",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "0",
+            "key": "count"
+          }
+        ],
+        "offset": {
+          "x": 280,
+          "y": 1080
+        }
+      }
+    },
+    {
+      "name": "send_question",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "question_instruction",
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS45cc13e0903c336c0a6a0b119b352714",
+        "environment_sid": "ZE61a9756c809d299bef7366698777dab7",
+        "offset": {
+          "x": 940,
+          "y": 790
+        },
+        "function_sid": "ZH87b19f86b14e3952a3bbe4481fc8f8ef",
+        "parameters": [
+          {
+            "value": "{{flow.variables.count}}",
+            "key": "ques_num"
+          },
+          {
+            "value": "{{trigger.message.From}}",
+            "key": "receipent_contact"
+          }
+        ],
+        "url": "https://chat-and-learn-4984.twil.io/send_question"
+      }
+    },
+    {
+      "name": "question_instruction",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "send_message_1",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 760,
+          "y": 1010
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Please answer the above question in a single message.\n\nPlease note, the following message you shall reply will be considered as the answer, and will thereby (if) move to the next question.",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "send_message_1",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "store_answer",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1270,
+          "y": 1010
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Thank You for your answer"
+      }
+    },
+    {
+      "name": "get_name1",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "set_var_name",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 380,
+          "y": 360
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Please enter your name",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "set_var_name",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "func_getQuestionList",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "test",
+            "key": "name"
+          }
+        ],
+        "offset": {
+          "x": 710,
+          "y": 320
+        }
+      }
+    },
+    {
+      "name": "store_answer",
+      "type": "run-function",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS45cc13e0903c336c0a6a0b119b352714",
+        "environment_sid": "ZE61a9756c809d299bef7366698777dab7",
+        "offset": {
+          "x": 1140,
+          "y": 1260
+        },
+        "function_sid": "ZH49b1252a11b20b94cc1b3bf4884a7f1f",
+        "parameters": [
+          {
+            "value": "{{trigger.message.From}}",
+            "key": "receipent_contact"
+          },
+          {
+            "value": "{{widgets.get_name1.inbound.Body}}",
+            "key": "receipent_name"
+          },
+          {
+            "value": "{{widgets.question_instruction.inbound.Body}}",
+            "key": "receipent_answer"
+          },
+          {
+            "value": "{{widgets.send_question.body}}",
+            "key": "receipent_question"
+          }
+        ],
+        "url": "https://chat-and-learn-4984.twil.io/store_answer"
+      }
+    },
+    {
+      "name": "get_name",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "set_var_name",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1110,
+          "y": 290
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "Please enter your name",
+        "timeout": "3600"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}
